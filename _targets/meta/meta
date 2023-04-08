@@ -1,0 +1,36 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+combine_deaths_and_pop|function|b108a3baaa14081b|||||||||||||||
+data|stem|2cb0d01e27f35045|43fae4011a0626f4|136bf5e07fbd9b1c|1588979285||t19452.5470569297s|d07e2e962de596ec|1750|rds|local|vector|||0.002||
+deaths_by_age_groups|stem|6c2e6fea0c566ec6|ddf6f78123ba8d83|497a7885571f0572|-1137645547||t19454.6585718004s|c33a444aec325f64|203314|rds|local|vector|||12.748||
+deaths_combined|stem|f921c6ede8646cce|747fba7a5272252c|5534ba4fe355e5a0|69264635||t19454.6585735596s|ec39e486b0ae2e25|207212|rds|local|vector|||0.043||
+deaths_combined_normalized|stem|1a80dc24e2e4df21|9d6b5c9895aa5632|6cf2c4f40efe1bae|1890239183||t19454.6585755966s|02dc8dc87ab8f73e|242423|rds|local|vector|||0.086||
+deaths_pandemic|stem|cc76eea2034c4611|26173c26d94b5774|f4b792122c665587|-1177711480||t19454.5550261456s|c727fd35c8f7fdd5|33022|rds|local|vector|||0.082||
+deaths_pandemic_normalized|stem|742ae605f11146d7|4484ff025caaf255|52a51a8a92bd078c|-94480037||t19454.6605519788s|de6a4f7d1760bfd5|37850|rds|local|vector|||0.011||
+deaths_pre_pandemic|stem|e5ced8a1a5af757c|acc8d79c774f4ca3|9765a79ae7ef5146|-336886071||t19454.5550250345s|66939d1d74bb1ecc|194145|rds|local|vector|||0.096||
+deaths_pre_pandemic_filename|stem|33b86d5288549e81|c3c96d9630ba0a63|2d0607d5e5a72e2d|818352648|data/deaths_by_age_groups_pre_pandemic.csv|t19454.5550288307s||2398746|file|local|vector|||2.062||object deaths_pre_pandemic not found
+deaths_pre_pandemic_normalized|stem|f93cf9aa7366c3cf|48cf901e2cc10eb3|d46722aef7284e21|1042387731||t19454.6585766614s|e7e58a03888cb3bf|210390|rds|local|vector|||0.017||
+deaths_weekly_totals|stem|6e86e6a038b5a910|7e78b1dbc6589a7b|23e1c582fff8bc70|-340345705||t19454.6605511918s|08ed886b7b0c12cf|16086|rds|local|vector|||0.167||
+download_statistik_austria_population|function|29b07325193e20ed|||||||||||||||
+download_statistik_austria_weekly_deaths|function|ca6226abe8b8b542|||||||||||||||
+draw_predictions|function|9425b907e3a2b247|||||||||||||||
+filter_deaths_pandemic|function|e45bb9d6b49e6c28|||||||||||||||
+filter_deaths_pre_pandemic|function|7fda32d9d381cb45|||||||||||||||
+fit_brms_weekl_age_structured_model|function|12b85effa9219e74|||||||||||||||
+fit_brms_weekly_no_age_structure_model|function|15b46c617f934e21|||||||||||||||
+matching_age_groups_verification|stem|fa414575f26f5f5e|128fd7c63dcf4746|6168e909600fdecb|-1433765298||t19452.5514064431s|a1c456b03adbfbf8|44|rds|local|vector|||0.002||
+model|stem|fbc258a9f59772bd|ae83bc723fe2997c|4ac398f1227c1b13|1816327236||t19452.547056976s|1254f8a9a0ffbd1f|107|rds|local|vector|||0.002||
+model_input|stem|21256e02a4012948|70fb3a1ebdee311d|12c6100c356c76f6|-1214896237||t19452.5614731184s|0bfadead6cfd9dd6|95876|rds|local|vector|||0.187||
+model_input_filename|stem|33b86d5288549e81|c3c96d9630ba0a63|57844f64193bdfea|1090570381|data/deaths_by_age_groups_pre_pandemic.csv|t19452.5611927557s|733f10b025f69817|2398746|file|local|vector|||0.306||
+model_main_weekly_age_structured|stem|d6bb12def32acfd8|818dfc3a0414b00a|efb1c5263ab86435|1427903036||t19454.2891326659s||43561023|rds|local|vector|||29097.435|some chains had errors consider specifying chains  1 to debug|ignoring SIGPIPE signal
+model_main_weekly_age_structured_change|stem|81303299d5e7a268|bf8a4e92cc7c5650|8dcc1848bbe4bd76|26192684||t19454.6605525807s|6935d04907feb3d2|146|rds|local|vector|||0.021||
+model_sensitivty_analysis_no_age_structure|stem|b35b33e1aa50b343|ebaf7b25ab56386e|3ea5b94900a11557|463388957||t19454.653792808s|7e2091130d3aa115|34155425|rds|local|vector|||127.475|There were 151 divergent transitions after warmup. Seehttpsmcstan.orgmiscwarnings.htmldivergenttransitionsafterwarmupto find out why this is a problem and how to eliminate them.. Examine the pairs plot to diagnose sampling problems. Tail Effective Samples Size ESS is too low, indicating posterior variances and tail quantiles may be unreliable.Running the chains for more iterations may help. Seehttpsmcstan.orgmiscwarnings.htmltailess|
+normalize_deaths_for_model|function|7afc0a8af105ad08|||||||||||||||
+pop_age_levels|object|c1af5eb403044d37|||||||||||||||
+prediction_draws_model_main|stem|11a3be1b8d124958|a15ed79b3f4d7095|aed04ce15bcfa526|-2070816364||t19454.6310316141s|a3b16c10fbd946ff|120710484|rds|local|vector|||14.628||
+prediction_weekly_totals_model_main|stem|3373f4246b1b0f8b|d1d427224e8b417c|f0697740158fa887|1656580386||t19454.631115223s|e405549ea31ff79c|4003788|rds|local|vector|||6.136||
+projected_population|stem|c39dba952cc7bbc7|b02089fdb07f3311|42b1890f5824476a|-1314846983||t19452.5495867695s|64a51439dec6a9ed|37485|rds|local|vector|||1.191||
+read_df_from_csv|function|76e9d9ad14d8234f|||||||||||||||
+summarize_weekly_predictions|function|c3e27c6c6858ea9e|||||||||||||||
+verify_matching_age_groups|function|5ee8de6182f80aa7|||||||||||||||
+weekly_totals_for_deaths|function|039f3c94507c0843|||||||||||||||
+write_df_to_csv|function|8d594e98458c65ff|||||||||||||||
