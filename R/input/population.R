@@ -1,3 +1,4 @@
+#' Age levels used in the model and plots
 pop_age_levels <- 
   c("up to 4 years old",
     "5 to 9 years old",
@@ -20,6 +21,10 @@ pop_age_levels <-
     "90 to 94 years old",
     "95 plus years old")
 
+#' Downloads up-to-date beginning of year population projections by 5 year age group
+#' from Statistik Austrias open government data 
+#' 
+#' Source: https://data.statistik.gv.at/web/meta.jsp?dataset=OGD_bevjahresanf_PR_BEVJA_7
 download_statistik_austria_population <- function() {
   projected_pop_desc <- od_table("OGD_bevjahresanf_PR_BEVJA_7")
   projected_pop <- projected_pop_desc$tabulate() 
