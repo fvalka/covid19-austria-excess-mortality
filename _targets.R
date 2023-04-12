@@ -70,7 +70,19 @@ list(
     draw_predictions(model_main_weekly_age_structured, deaths_pandemic_normalized)
   ),
   tar_target(
+    prediction_draws_sensitivty_pre_pandemic, 
+    draw_predictions(model_main_weekly_age_structured, deaths_pre_pandemic_normalized)
+  ),
+  tar_target(
+    prediction_draws_sensitivty_analysis_no_age_structure,
+    draw_predictions(model_sensitivty_analysis_no_age_structure, deaths_weekly_totals) 
+  ),
+  tar_target(
     prediction_weekly_totals_model_main,
     summarize_weekly_predictions(prediction_draws_model_main)
+  ),
+  tar_target(
+    prediction_weekly_totals_sensitivty_pre_pandemic,
+    summarize_weekly_predictions(prediction_draws_sensitivty_pre_pandemic)
   )
 )
