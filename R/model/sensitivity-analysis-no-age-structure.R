@@ -13,3 +13,4 @@ fit_brms_weekly_no_age_structure_model <- function(weekly_deaths_pre_pandemic) {
   
   weekly_model
 }
+
