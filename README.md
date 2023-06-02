@@ -18,6 +18,13 @@ Builds are executed by first installing the `renv` package and installing all re
 renv::restore()
 ```
 
+Ensure that no build is skipped in the `_targets.R` file, all `tar_cue_skip` 
+cues should look like this:
+
+```
+cue = tarchetypes::tar_cue_skip(FALSE)
+```
+
 Once all packages have been installed the [targets](https://books.ropensci.org/targets/)
 pipeline can be executed using 
 
@@ -35,7 +42,8 @@ targets::tar_make()
 
 A docker-compose file is provided in this project to ensure a reproducible development environment.
 
-To run the rstudio server in docker execute the following command:
+To run the rstudio server in docker first set a PASSWORD in the docker compose file and then
+execute the following command:
 ```
 docker-compose -f docker-compose-rstudio.yml up
 ```
