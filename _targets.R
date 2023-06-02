@@ -61,12 +61,12 @@ list(
   tar_target(
     model_main_weekly_age_structured,
     fit_brms_weekl_age_structured_model(deaths_pre_pandemic_normalized),
-    cue = tarchetypes::tar_cue_skip(FALSE) # build only for the first time and as required
+    cue = tarchetypes::tar_cue_skip(TRUE) # build only for the first time and as required
   ),
   tar_target(
     model_sensitivty_analysis_no_age_structure,
     fit_brms_weekly_no_age_structure_model(deaths_weekly_totals_pre_pandemic),
-    cue = tarchetypes::tar_cue_skip(FALSE) # build only for the first time and as required
+    cue = tarchetypes::tar_cue_skip(TRUE) # build only for the first time and as required
   ),
   tar_target(
     prediction_draws_model_main, 
