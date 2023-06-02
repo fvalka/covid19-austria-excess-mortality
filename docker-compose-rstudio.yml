@@ -8,6 +8,6 @@ services:
     ports:
       - '8787:8787'
     environment:
-      - PASSWORD=EXSBSscvyMumA49
+      - PASSWORD=changeMe
     volumes:
       - .:/home/rstudio/covid19-austria-excess-mortality
