@@ -1,0 +1,13 @@
+version: '3'
+services:
+  rstudio:
+    image: covid19-austria-excess-mortality:0.0.2
+    build:
+      context: .
+      dockerfile: Dockerfile-rstudio
+    ports:
+      - '8787:8787'
+    environment:
+      - PASSWORD=EXSBSscvyMumA49
+    volumes:
+      - .:/home/rstudio/covid19-austria-excess-mortality

@@ -19,5 +19,23 @@ renv::restore()
 ```
 
 Once all packages have been installed the [targets](https://books.ropensci.org/targets/)
-pipeline can be executed using `run.sh` or `targets::tar_make()`.
+pipeline can be executed using 
 
+```
+run.sh
+``` 
+or 
+
+```
+targets::tar_make()
+```
+
+
+## Reproducible Development Environment
+
+A docker-compose file is provided in this project to ensure a reproducible development environment.
+
+To run the rstudio server in docker execute the following command:
+```
+docker-compose -f docker-compose-rstudio.yml up
+```

@@ -1,0 +1,5 @@
+FROM rocker/rstudio:4.3.0
+
+# OS level prerequisites
+RUN apt-get update
+RUN apt-get install -y libz-dev
