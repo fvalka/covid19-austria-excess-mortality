@@ -24,5 +24,23 @@ summarize_weekly_predictions <- function(prediction_draws) {
   prediction_draws |>
     group_by(year, week, week_start, week_end, .draw) |>
     summarise(deaths = sum(deaths),
-              .prediction = sum(.prediction))
+              .prediction = sum(.prediction)) |>
+    mutate(excess = deaths - .prediction) |>
+    ungroup() |>
+    group_by(.draw) |>
+    arrange(week_start) |>
+    mutate(cum_expected = cumsum(.prediction),
+           cum_excess = cumsum(excess),
+           cum_deaths = cumsum(deaths)) 
+}
+
+combine_predictions <- function(...) {
+  dplyr::bind_rows(list(...)) |>
+    ungroup() |>
+    arrange(week_start) |>
+    group_by(.draw) |>
+    arrange(week_start) |>
+    mutate(cum_expected = cumsum(.prediction),
+           cum_excess = cumsum(excess),
+           cum_deaths = cumsum(deaths)) 
 }

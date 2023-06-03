@@ -1,0 +1,411 @@
+---
+title: "Estimates of excess mortality in Austria during the first three years of the
+  COVID-19 pandemic"
+author: "Authors"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(targets)
+library(dplyr)
+library(ggplot2)
+library(here)
+library(ggdist)
+library(patchwork)
+library(lubridate)
+
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = here())
+
+source(here("R/plots/model-timeseries-plots.R"))
+```
+
+```{r, warning=FALSE, message=FALSE}
+report_years <- c(2020, 2021, 2022)
+
+pop_age_levels <- 
+  c("up to 4 years old",
+    "5 to 9 years old",
+    "10 to 14 years old", 
+    "15 to 19 years old", 
+    "20 to 24 years old", 
+    "25 to 29 years old", 
+    "30 to 34 years old", 
+    "35 to 39 years old", 
+    "40 to 44 years old", 
+    "45 to 49 years old",
+    "50 to 54 years old", 
+    "55 to 59 years old", 
+    "60 to 64 years old", 
+    "65 to 69 years old", 
+    "70 to 74 years old", 
+    "75 to 79 years old", 
+    "80 to 84 years old", 
+    "85 to 89 years old", 
+    "90 to 94 years old",
+    "95 plus years old")
+
+color_scale_values <- c("Excess Deaths", "Reported COVID Deaths (EMS)", "Reported COVID Deaths (Statistik Austria)")
+
+excess_estimate <- tar_read("prediction_weekly_totals_model_main") 
+
+yearly_excess_estimate <- excess_estimate |>
+  mutate(year=year(week_end)) |>
+  ungroup() |>
+  group_by(year, .draw) |>
+  summarise(excess = sum(excess),
+            expected = sum(.prediction))
+
+covid_deaths <- tar_read("covid_cases_deaths") |>
+  ungroup() |>
+  arrange(week_start) |>
+  mutate(cum_covid_deaths = cumsum(covid_deaths)) |>
+  select(week_start, covid_deaths, cum_covid_deaths)
+
+yearly_covid_deaths <- covid_deaths |>
+  ungroup() |>
+  mutate(year = year(week_start + days(6))) |>
+  group_by(year) |>
+  summarise(covid_deaths = sum(covid_deaths))
+
+yearly_covid_deaths_statistik_at <- data.frame(
+  year = c(2021, 2022),
+  covid_deaths = c(4257+3600+1192, 8055)
+)
+
+get_yearly_stats <- function(years_selected, ci_level, yearly_excess_estimate) {
+  draws <- yearly_excess_estimate |>
+    ungroup() |>
+    filter(year %in% years_selected) |>
+    group_by(.draw) |>
+    mutate(excess = sum(excess))
+  
+  bayestestR::describe_posterior(draws$excess, ci=ci_level) |>
+    as.data.frame() |>
+    mutate(Median = round(Median),
+           CI_low = round(CI_low),
+           CI_high = round(CI_high)) 
+}
+
+format_yearly_stats <- function(years_selected, excess_estimate = yearly_excess_estimate) {
+  ci_70 <- get_yearly_stats(years_selected, 0.7, excess_estimate)
+  ci_90 <- get_yearly_stats(years_selected, 0.9, excess_estimate)
+  
+  glue::glue("{ci_90$Median} [70% CI: {ci_70$CI_low} - {ci_70$CI_high}, 90% CI: {ci_90$CI_low} - {ci_90$CI_high}]")
+}
+  
+```
+
+# Abstract
+
+
+# Introduction
+
+# Methods
+
+## Data sources
+
+Reported deaths by week, 5-year age-group, and sex were obtained from the open-data
+repository of the official Austrian statistics office, Statistik Austria. 
+
+## Model
+
+We compared deaths reported in Austria during the first three years of the COVID-19 pandemic
+from 2020 to 2022 to deaths expected from pre-pandemic trends and patterns in all-cause mortality. 
+
+
+Excess deaths, $\delta_{y,w,a,s}$, in a given year, $y$, week, $w$, 5-year age-group, $a$, and sex $s$, 
+were defined as the difference between reported deaths, $Y_{y,w,a,s}$ and
+model estimated expected deaths $E_{y,w,a,s}$.
+
+$$
+\delta_{y,w,a,s} = Y_{y,w,a,s} - E_{y,w,a,s}
+$$
+
+To estimate the expected number of deaths in a given week we formulated an
+age-structured Bayesian GAM model using R and brms. Weekly seasonality of 
+expected deaths was modeled using a cyclic cubic spline with a knot for each week, $h(w)$. 
+Long term trends in changes in all-cause mortality were accounted for by a thin plate spline 
+with knots every 4 years, $g(y)$. 
+
+The model uses a negative binomial distribution for the expected number of deaths
+to allow for over dispersion in reported deaths, $E_{y,w,a,s} \sim \textrm{NegBinomial}(\mu_{y,w,a,s}, \theta)$. 
+
+The predictors, $\mu_{y,w,s,x}$, were linked into the model using a log link function. 
+The population, $N_{y,a,s}$, in each year, $y$, 5-year age group, $a$, and sex, $s$, 
+was multiplied by a constant normalization factor $\gamma_{a,s}$. 
+This normalization factor was used to improve the numerical stability of the model and
+was calculated for each age group and sex by dividing the mean number of deaths 
+in the pre-pandemic period $\bar{Y}_{a,s}$ by the mean population in this age group and sex 
+in the pre-pandemic period $\bar{N}_{a,s}$.
+
+
+$$
+\log (\mu_{y,w,a,s}) = \beta_{a,s} \log{(\gamma_{a,s} N_{y,a,s})} + g(y) + h(w)
+$$
+
+The P-score is defined as the percentage difference between actual all-cause 
+mortality and expected all-ause mortality. 
+
+$$
+P_{y,w,a,s} = \frac{\delta_{y,w,a,s}}{E_{y,w,a,s}}
+$$
+Aggregate results, total weekly excess mortality, were obtained by 
+summing over samples drawn from the posterior distribution of the model. 
+Bayesian credible intervals were calculated using the equal-tailed method.
+
+## Code and data availability
+
+All code is available on GitHub at 
+[github.com/fvalka/covid19-austria-excess-mortality](https://github.com/fvalka/covid19-austria-excess-mortality).
+The data sets are available as open-data at Statistik Austria, 
+[https://data.statistik.gv.at/](https://data.statistik.gv.at/) and at the 
+Austrian COVID-19 open data portal 
+[https://www.data.gv.at/en/data/austrian-covid-19-open-data-information-portal/](https://www.data.gv.at/en/data/austrian-covid-19-open-data-information-portal/).
+
+
+# Results
+
+In total we estimate that `r format_yearly_stats(report_years)` excess deaths occurred 
+in Austria during the first three years of the COVID-19 pandemic. 
+With `r format_yearly_stats(2020)` excess deaths in 2020, `r format_yearly_stats(2021)` 
+excess deaths in 2021, and `r format_yearly_stats(2022)` excess deaths in 2022.
+
+```{r, excess-over-time, warning=FALSE, message=FALSE, out.width = '85%', fig.width=8.5, fig.height=6, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Model estimated cumulative and weekly deaths compared to reported COVID deaths."}
+
+
+cumulative_excess_plot <- plot_model_timeseries(excess_estimate, cum_excess) +
+  geom_line(data=covid_deaths, aes(y=cum_covid_deaths, color="Reported COVID Deaths (EMS)")) +
+  ggtitle("Cumulative deaths")
+
+weekly_excess_plot <- plot_model_timeseries(excess_estimate, excess) +
+  geom_line(data=covid_deaths, aes(y=covid_deaths, color="Reported COVID Deaths (EMS)")) +
+  ggtitle("Weekly deaths")
+
+
+(cumulative_excess_plot /
+  weekly_excess_plot)  + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
+```
+
+```{r, excess-yearly-totals, warning=FALSE, message=FALSE, out.width = '85%', fig.width=8.5, fig.height=3.5, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Posterior distributions of the yearly sums  of estimated excess mortality and P-scores. "}
+yearly_excess_deaths_plot <- excess_estimate |>
+  mutate(year=year(week_end)) |>
+  ungroup() |>
+  group_by(year, .draw) |>
+  summarise(excess = sum(excess),
+            expected = sum(.prediction)) |>
+  ggplot(aes(y=excess, x=factor(year))) +
+  geom_violin(draw_quantiles = c(0.5), aes(color="Excess Deaths")) +
+  geom_point(data=yearly_covid_deaths, 
+             aes(y=covid_deaths, color="Reported COVID Deaths (EMS)"),
+             size=4, 
+             alpha=0.7) +
+  geom_point(data=yearly_covid_deaths_statistik_at, 
+             aes(y=covid_deaths, color="Reported COVID Deaths (Statistik Austria)"), 
+             size=4, 
+             alpha=0.7) +
+  scale_y_continuous(limits = c(0, NA)) +
+  ggsci::scale_color_npg(limits = color_scale_values) +
+  ggsci::scale_fill_npg(limits = color_scale_values) +
+  labs(y="Excess Deaths", x="Year") +
+  ggpubr::theme_pubr() +
+  labs(color=NULL)
+
+yearly_pscore_plot <- excess_estimate |>
+  mutate(year=year(week_end)) |>
+  ungroup() |>
+  group_by(year, .draw) |>
+  summarise(excess = sum(excess),
+            expected = sum(.prediction)) |>
+  mutate(p_score = (excess/expected)) |>
+  ggplot(aes(y=p_score, x=factor(year))) +
+  geom_violin(draw_quantiles = c(0.5)) +
+  scale_y_continuous(limits = c(0, NA), labels = scales::percent) +
+  ggsci::scale_color_npg(limits = color_scale_values) +
+  ggsci::scale_fill_npg(limits = color_scale_values) +
+  labs(y="P-Score", x="Year") +
+  ggpubr::theme_pubr()
+
+(yearly_excess_deaths_plot | yearly_pscore_plot) + 
+  plot_layout(guides = 'collect') & 
+  theme(legend.position = 'bottom')
+```
+
+# Discussion
+
+Austria experienced excess mortality in all years of the COVID-19 pandemic
+with no decline in 2022. Reported COVID-19 deaths match the excess mortality
+in 2020, are at the upper end or slightly higher than excess mortality in 2021
+and in 2022 there is a large difference between COVID deaths reported in the
+Austrian epidemiological surveillance system (EMS) and COVID deaths, with COVID 
+as the primary or a secondary cause, taken from reported cause-of-death 
+statistics from Statistik Austria. 
+
+The main strength of our method is that our model considers both changes in demography,
+including changes caused by excess mortality in each year of the pandemic 
+affecting the population size in the following years, as well as long term 
+trends in excess mortality and weekly seasonality. 
+
+# References
+
+# Supplement 
+
+## Long term trends and seasonality
+
+The model contains smoothing curves for weekly seasonality $h(w)$ and yearly 
+trends $g(y)$, which are shown in the figure. The yearly trend was fitted 
+until 2019 and projected up to 2022. 
+
+```{r, supplement-seasonlity-and-trend, warning=FALSE, message=FALSE, out.width = '75%', fig.width=8, fig.height=3.5, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Supplemental figure: Model estimaed parameters for weekly seasonality cyclic cubic splines and yearly trend thin plate splines on the log-link scale."}
+weekly_seasonality_plot <- ggplotify::as.ggplot(function() plot(brms::conditional_smooths(tar_read("model_main_weekly_age_structured"), 
+                         smooths = "s(week, bs = \"cc\", k = 53)",
+                         prob = 0.9), 
+     ask = FALSE)) +
+  ggtitle("Weekly seasonality on link scale: h(w)")
+
+yearly_trend_plot <- ggplotify::as.ggplot(function() plot(brms::conditional_smooths(tar_read("model_main_weekly_age_structured"), 
+                         smooths = "s(year, k = 5)",
+                         prob = 0.9,
+                         int_conditions = list(year = 2000:2022)),
+     ask = FALSE)) +
+  ggtitle("Yearly trend on link scale: g(y)")
+
+weekly_seasonality_plot | yearly_trend_plot
+
+```
+
+## Estimated expected mortality rates by age group and sex
+
+The model is based upon an expected rate of deaths for each age group and sex.
+This estimated rate of expected deaths in the model is obtained from the 
+estimates of the $\beta_{a,s}$ parameters multiplied with the population
+normalization factor $\gamma_{a,s}$. 
+
+These estimates are rates before the yearly trend and weekly seasonality are
+applied to them. 
+
+```{r, supplement-mortality-rates, warning=FALSE, message=FALSE, out.width = '75%', fig.width=8, fig.height=4, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Supplemental figure: Estimaed mortality rates by age groups and sex, before yearly trends and weekly seasonality are applied. "}
+mortality_rates_fit <- brms::ranef(tar_read("model_main_weekly_age_structured"),
+                                   probs=c(0.05, 1-0.05)) |>
+  as.data.frame() |>
+  tibble::rownames_to_column(var="group")
+
+pop_norm_factor <- tar_read("pop_norm_factor") |>
+  mutate(group = stringr::str_c(age, "_", sex))
+
+mortality_rates_fit |> 
+  left_join(pop_norm_factor) |>
+  mutate(Median = age.sex.Estimate.mean_deaths_log * pop_norm_factor * 1e5,
+         CI_low = age.sex.Q5.mean_deaths_log * pop_norm_factor * 1e5,
+         CI_high = age.sex.Q95.mean_deaths_log * pop_norm_factor * 1e5) |>
+  ggplot(aes(x=Median, y=age, color=sex)) +
+  geom_pointinterval(aes(xmin = CI_low, x=Median, xmax=CI_high)) +
+  scale_x_log10() +
+  scale_y_discrete(limits=pop_age_levels) +
+  annotation_logticks(sides = "b") +
+  ggpubr::theme_pubr() +
+  labs(x="Model estimated rate of expected deaths per 100 000",
+       y="Age group",
+       color="Sex")
+  
+
+```
+
+## Sensitivity Analysis 
+
+### Model bias in pre-pandemic period
+
+To investigate if there is any residual bias in the model for the fitted 
+pre-pandemic years (up until 2019) we estimated the cumulative excess deaths 
+for this period.
+Since we consider all patterns in all-cause mortality, including seasonality 
+and pre-pandemic excess as the baseline this should lead to a cumulative excess
+from the year 2000 to 2019 of approximately 0. 
+
+```{r, supplement-sensitivity-model-bias, warning=FALSE, message=FALSE, out.width = '85%', fig.width=8.5, fig.height=4, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Supplemental figure: Estimate of excess mortality in the pre-pandemic and pandemic period combined to investigate residual bias in the model after parameter estimation. "}
+prediction_weekly_totals_sensitivty_bias <- tar_read("prediction_weekly_totals_sensitivty_bias")
+
+plot_model_timeseries(prediction_weekly_totals_sensitivty_bias, cum_excess) 
+
+```
+
+### Non age-structured model
+
+We also implemented a non age structured model similar to previously published 
+results [WHO excess mortality ref] to investigate the effect of the age structuring
+in the model compared to simpler methods. 
+
+This model was also implemented as a Bayesian GAM using a negative binomial
+distribution and log link function. Two smoothing functions were used
+one cubic cylic spline for weekly seasonality, $n(w)$, and a thin plate regression spline
+for yearly trends, $m(y)$, which unlike the main model contain a knot for each year to 
+account for combined changes in longer term all-cause mortality trends and shift
+in demographics. 
+
+The log linked estimator for this model, $\nu_{y,w}$, is defined as:
+
+
+$$
+\log (\nu_{y,w}) = m(y) + n(w)
+$$
+
+Since this model can for later years of the pandemic not consider the excess 
+mortality which occurred during the earlier years of the pandemic we would expect 
+the estimates based upon pre-pandemic trends to be more biased towards lower 
+estimates for each consecutive year in the pandemic. 
+
+```{r, supplement-no-age-structure, warning=FALSE, message=FALSE, out.width = '85%', fig.width=8.5, fig.height=4, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Supplemental figure: Estimated cumulative excess mortality from a non age structured model with weekly seasonality and yearly trend."}
+prediction_weekly_totals_sensitivty_no_age_structure <- tar_read("prediction_weekly_totals_sensitivty_no_age_structure")
+
+plot_model_timeseries(prediction_weekly_totals_sensitivty_no_age_structure, cum_excess) +
+  geom_line(data=covid_deaths, aes(y=cum_covid_deaths, color="Reported COVID Deaths (EMS)")) +
+  ggtitle("Non-age structured model, sensitivty analysis")
+```
+
+```{r, supplement-non-age-structured-excess, warning=FALSE, message=FALSE, out.width = '85%', fig.width=8.5, fig.height=3.5, fig.align = 'center', dpi=150, fig.cap="", fig.cap="Supplement figure: Model estimated yearly excess model for the age-structured main model and the non-age structured sensitivty model and difference between the estimated excess deaths in both models. "}
+yearly_excess_estimate_sensitivity_no_age_structure <- prediction_weekly_totals_sensitivty_no_age_structure |>
+  mutate(year=year(week_end)) |>
+  ungroup() |>
+  group_by(year, .draw) |>
+  summarise(excess = sum(excess),
+            expected = sum(.prediction))
+
+plot_yearly_excess_difference_no_age_structure <- yearly_excess_estimate_sensitivity_no_age_structure |>
+  rename(excess_sensitivty = excess,
+         expected_sensitivty = expected) |>
+  inner_join(yearly_excess_estimate) |>
+  filter(year %in% report_years) |>
+  mutate(difference = excess - excess_sensitivty) |>
+  ggplot(aes(x=factor(year), y=difference)) +
+  geom_hline(yintercept = 0) +
+  geom_violin(draw_quantiles = c(0.5)) +
+  ggpubr::theme_pubclean() +
+  labs(x="Year", y="Excess deaths") +
+  ggtitle("Difference between models")
+
+plot_yearly_excess_no_age_structure <- yearly_excess_estimate_sensitivity_no_age_structure |> 
+  mutate(model="non age-structured, sensitivty") |>
+  rbind(yearly_excess_estimate |> 
+          mutate(model = "age-structred, main")) |>
+  filter(year %in% report_years) |>
+  ggplot(aes(x=factor(year), y=excess, color=model)) +
+  geom_hline(yintercept = 0) +
+  geom_violin(draw_quantiles = c(0.5)) +
+  ggpubr::theme_pubclean() +
+  labs(x="Year", y="Excess deaths") +
+  ggtitle("Estimated excess deaths")
+
+(plot_yearly_excess_no_age_structure | plot_yearly_excess_difference_no_age_structure) + 
+  plot_layout(guides = 'collect') & 
+  theme(legend.position = 'bottom')
+
+```
+
+Using this non age-structured model we estimated a total of 
+`r format_yearly_stats(report_years, yearly_excess_estimate_sensitivity_no_age_structure)`
+excess deaths for the years 2020 to 2022 compared to 
+`r format_yearly_stats(report_years)` excess deaths from the age-structured 
+main model. 
+
+### Backtesting for a pre-pandemic estimation 

@@ -37,18 +37,26 @@ filter_deaths_pandemic <- function(deaths_combined) {
     filter(year >= 2020)
 }
 
+#' Calculates the mean death rate over all years to normalize the model 
+#' such that regression parameters for each age group are around 1
+#' 
+#' @param deaths_pop_combined data.frame containing deaths and population by age groups and weeks
+calculate_pop_norm_factors <- function(deaths_pop_combined) {
+  deaths_pop_combined |>
+    ungroup() |>
+    group_by(age, sex) |>
+    summarise(pop_norm_factor = mean(deaths)/mean(pop),
+              pop_min = min(pop))
+}
+
 #' Calculates a constant normalization factor based upon mean deaths per mean 
 #' population to improve the well posedness of the model 
 #' 
 #' And calculates log deaths to linearize the GAM in this parameter
 #' 
 #' @param deaths_pop_combined data.frame containing deaths and population by age groups and weeks
-normalize_deaths_for_model <- function(deaths_pop_combined) {
-  pop_norm_factor <- deaths_pop_combined |>
-    ungroup() |>
-    group_by(age, sex) |>
-    summarise(pop_norm_factor = mean(deaths)/mean(pop),
-              pop_min = min(pop))
+normalize_deaths_for_model <- function(deaths_pop_combined, pop_norm_factor) {
+  
   
   first_year <- min(deaths_pop_combined$year)
   

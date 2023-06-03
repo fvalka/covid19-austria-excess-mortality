@@ -47,8 +47,12 @@ list(
     filter_deaths_pre_pandemic(deaths_weekly_totals)
   ),
   tar_target(
+    pop_norm_factor,
+    calculate_pop_norm_factors(deaths_combined)
+  ),
+  tar_target(
     deaths_combined_normalized,
-    normalize_deaths_for_model(deaths_combined)
+    normalize_deaths_for_model(deaths_combined, pop_norm_factor)
   ),
   tar_target(
     deaths_pre_pandemic_normalized,
@@ -78,7 +82,7 @@ list(
   ),
   tar_target(
     prediction_draws_sensitivty_analysis_no_age_structure,
-    draw_predictions(model_sensitivty_analysis_no_age_structure, deaths_weekly_totals) 
+    draw_predictions(model_sensitivty_analysis_no_age_structure, filter_deaths_pandemic(deaths_weekly_totals))
   ),
   tar_target(
     prediction_weekly_totals_model_main,
@@ -87,5 +91,14 @@ list(
   tar_target(
     prediction_weekly_totals_sensitivty_pre_pandemic,
     summarize_weekly_predictions(prediction_draws_sensitivty_pre_pandemic)
+  ),
+  tar_target(
+    prediction_weekly_totals_sensitivty_bias,
+    combine_predictions(prediction_weekly_totals_sensitivty_pre_pandemic, 
+                          prediction_weekly_totals_model_main)
+  ),
+  tar_target(
+    prediction_weekly_totals_sensitivty_no_age_structure,
+    summarize_weekly_predictions(prediction_draws_sensitivty_analysis_no_age_structure)
   )
 )
